@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CO2 Emissions: Which Countries Drove Global Growth?</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header>
+    <h1>CO<sub>2</sub> Emissions in Major Economies (1990–2019)</h1>
+    <p class="subtitle">Which countries drove global CO<sub>2</sub> emissions growth?</p>
+  </header>
+
+  <main>
+    <!-- Controls -->
+    <section class="controls">
+      <div class="control-group">
+        <label class="control-label">Toggle Countries</label>
+        <div id="country-toggles"></div>
+      </div>
+      <div class="control-group range-group">
+        <label class="control-label">
+          Year Range: <span id="year-range-label">1990 – 2019</span>
+        </label>
+        <div class="slider-row">
+          <span class="slider-bound">1990</span>
+          <div class="dual-slider-wrap">
+            <input type="range" id="year-min" min="1990" max="2019" value="1990" step="1" />
+            <input type="range" id="year-max" min="1990" max="2019" value="2019" step="1" />
+          </div>
+          <span class="slider-bound">2019</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Chart -->
+    <section class="chart-section">
+      <div id="chart-container">
+        <div id="tooltip" class="tooltip hidden"></div>
+      </div>
+    </section>
+
+    <!-- Write-up -->
+    <section class="writeup">
+      <h2>About This Visualization</h2>
+
+      <h3>Question</h3>
+      <p>
+        Which countries drove global CO<sub>2</sub> emissions growth from 1990 to 2019?
+        This visualization allows users to interactively explore absolute CO<sub>2</sub> emission
+        trajectories for five major economies — the United States, China, Germany, India, and Japan —
+        and investigate how their roles in global emissions have shifted over three decades.
+      </p>
+
+      <h3>Design Rationale</h3>
+      <p>
+        A multi-line time-series chart was chosen because it is the most natural encoding for
+        continuous change over time across multiple entities. Color encodes country identity using a
+        consistent, distinct palette, enabling easy comparison. Absolute emissions (kilotons) rather
+        than per-capita figures were used because the question concerns total climate impact.
+        Alternatives considered included a stacked area chart (rejected — harder to read individual
+        trajectories) and a bar chart race (rejected — obscures long-term trend shapes).
+      </p>
+      <p>
+        Four interaction techniques were implemented: (1) <strong>country toggle checkboxes</strong>
+        allow users to focus on specific countries without visual clutter; (2) a <strong>dual
+        year-range slider</strong> supports temporal zooming to examine sub-periods closely;
+        (3) <strong>hover highlighting</strong> with line bolding and dimming helps isolate a single
+        country's trajectory; (4) an interactive <strong>tooltip</strong> provides precise values on
+        demand. Together these support the task of identifying and comparing emissions drivers across
+        the full period as well as within chosen sub-periods.
+      </p>
+
+      <h3>Data Source</h3>
+      <p>
+        World Bank Open Data — CO<sub>2</sub> emissions (kt):
+        <a href="https://data.worldbank.org/indicator/EN.ATM.CO2E.KT" target="_blank">
+          https://data.worldbank.org/indicator/EN.ATM.CO2E.KT
+        </a>
+      </p>
+
+      <h3>Development Process</h3>
+      <p>
+        This project was completed individually. Total development time was approximately 6 hours.
+        The most time-consuming aspect was implementing the synchronized dual-handle year-range slider
+        in vanilla JavaScript/D3, and ensuring smooth animated axis and line transitions when filters
+        change. Data preparation and the write-up each took approximately one hour.
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    <p>Data Visualization Assignment 2 &mdash; Big Data Visualization and Visual Analytics, Spring 2026</p>
+  </footer>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

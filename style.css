@@ -1,0 +1,272 @@
+/* ── Reset & Base ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: #f7f8fa;
+  color: #222;
+  line-height: 1.6;
+}
+
+/* ── Header ───────────────────────────────────────────────── */
+header {
+  background: #1a1a2e;
+  color: #fff;
+  padding: 28px 40px 22px;
+  border-bottom: 4px solid #e94560;
+}
+
+header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+header .subtitle {
+  margin-top: 6px;
+  font-size: 1rem;
+  color: #aaa;
+}
+
+/* ── Main Layout ──────────────────────────────────────────── */
+main {
+  max-width: 960px;
+  margin: 32px auto;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Controls ─────────────────────────────────────────────── */
+.controls {
+  background: #fff;
+  border-radius: 10px;
+  padding: 18px 24px;
+  box-shadow: 0 1px 6px rgba(0,0,0,.08);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.control-group { display: flex; flex-direction: column; gap: 8px; }
+.range-group { flex: 1; min-width: 260px; }
+
+.control-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #666;
+}
+
+/* Country toggle checkboxes */
+#country-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px 5px 8px;
+  border-radius: 20px;
+  border: 2px solid;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: background 0.18s, opacity 0.18s;
+  user-select: none;
+}
+
+.toggle-btn.active {
+  background: var(--color);
+  color: #fff;
+  border-color: var(--color);
+}
+
+.toggle-btn.inactive {
+  border-color: #ccc;
+  color: #999;
+  background: transparent;
+}
+
+.toggle-btn .swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color);
+  flex-shrink: 0;
+}
+
+.toggle-btn.inactive .swatch {
+  background: #ccc;
+}
+
+/* Dual range slider */
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.slider-bound {
+  font-size: 0.8rem;
+  color: #888;
+  white-space: nowrap;
+}
+
+.dual-slider-wrap {
+  position: relative;
+  flex: 1;
+  height: 32px;
+}
+
+.dual-slider-wrap input[type=range] {
+  position: absolute;
+  width: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: transparent;
+  pointer-events: none;
+  outline: none;
+}
+
+.dual-slider-wrap input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #1a1a2e;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,.3);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.dual-slider-wrap input[type=range]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #1a1a2e;
+  border: 2px solid #fff;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+#year-range-label {
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+/* ── Chart Section ────────────────────────────────────────── */
+.chart-section {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 6px rgba(0,0,0,.08);
+  padding: 12px 8px 8px;
+  position: relative;
+}
+
+#chart-container {
+  width: 100%;
+  position: relative;
+}
+
+#chart-container svg { display: block; width: 100%; }
+
+/* D3 axis text */
+.axis text { font-size: 12px; fill: #555; }
+.axis path, .axis line { stroke: #ddd; }
+.grid line { stroke: #eee; stroke-dasharray: 3,3; }
+.grid path { stroke: none; }
+
+/* Country lines */
+.country-line {
+  fill: none;
+  stroke-width: 2.5px;
+  transition: opacity 0.2s, stroke-width 0.2s;
+  cursor: pointer;
+}
+
+.country-line.dimmed { opacity: 0.12; }
+.country-line.highlighted { stroke-width: 4px; }
+
+/* Data point dots */
+.dot {
+  cursor: pointer;
+  transition: r 0.15s, opacity 0.2s;
+}
+.dot.dimmed { opacity: 0.1; }
+
+/* Y-axis label */
+.y-axis-label {
+  font-size: 12px;
+  fill: #666;
+}
+
+/* ── Tooltip ──────────────────────────────────────────────── */
+.tooltip {
+  position: absolute;
+  background: rgba(20, 20, 40, 0.92);
+  color: #fff;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.83rem;
+  pointer-events: none;
+  box-shadow: 0 3px 12px rgba(0,0,0,.25);
+  white-space: nowrap;
+  z-index: 10;
+  transition: opacity 0.12s;
+}
+
+.tooltip.hidden { opacity: 0; }
+.tooltip-country { font-weight: 700; font-size: 0.9rem; margin-bottom: 2px; }
+.tooltip-year { color: #bbb; }
+.tooltip-value { margin-top: 4px; font-size: 0.95rem; }
+.tooltip-value strong { color: #ffd166; }
+
+/* ── Write-up ─────────────────────────────────────────────── */
+.writeup {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 6px rgba(0,0,0,.08);
+  padding: 28px 32px;
+}
+
+.writeup h2 {
+  font-size: 1.3rem;
+  margin-bottom: 18px;
+  color: #1a1a2e;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 10px;
+}
+
+.writeup h3 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #666;
+  margin: 18px 0 6px;
+}
+
+.writeup p { font-size: 0.95rem; color: #333; margin-bottom: 10px; }
+.writeup a { color: #e94560; text-decoration: none; }
+.writeup a:hover { text-decoration: underline; }
+
+/* ── Footer ───────────────────────────────────────────────── */
+footer {
+  text-align: center;
+  padding: 20px;
+  font-size: 0.8rem;
+  color: #aaa;
+}
