@@ -3,96 +3,147 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CO2 Emissions: Which Countries Drove Global Growth?</title>
+  <title>CO₂ Emissions Dashboard — Major Economies 1990–2019</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
   <header>
-    <h1>CO<sub>2</sub> Emissions in Major Economies (1990–2019)</h1>
-    <p class="subtitle">Which countries drove global CO<sub>2</sub> emissions growth?</p>
+    <div class="header-left">
+      <h1>CO<sub>2</sub> Emissions Dashboard</h1>
+      <p class="subtitle">Which countries drove global emissions growth? — Major Economies 1990–2019</p>
+    </div>
+    <div class="header-right">
+      <div class="year-display">
+        <span class="year-label">Selected Year</span>
+        <span id="scrubber-year-display">2005</span>
+      </div>
+    </div>
   </header>
 
   <main>
-    <!-- Controls -->
+
+    <!-- ── Top Controls ─────────────────────────────────────── -->
     <section class="controls">
+
       <div class="control-group">
-        <label class="control-label">Toggle Countries</label>
+        <span class="control-label">Countries</span>
         <div id="country-toggles"></div>
       </div>
-      <div class="control-group range-group">
-        <label class="control-label">
-          Year Range: <span id="year-range-label">1990 – 2019</span>
-        </label>
-        <div class="slider-row">
-          <span class="slider-bound">1990</span>
-          <div class="dual-slider-wrap">
-            <input type="range" id="year-min" min="1990" max="2019" value="1990" step="1" />
-            <input type="range" id="year-max" min="1990" max="2019" value="2019" step="1" />
-          </div>
-          <span class="slider-bound">2019</span>
+
+      <div class="control-group">
+        <span class="control-label">Metric</span>
+        <div class="mode-toggle">
+          <button id="btn-absolute" class="mode-btn active">Absolute (kt)</button>
+          <button id="btn-percapita" class="mode-btn">Per Capita (t)</button>
         </div>
       </div>
-    </section>
 
-    <!-- Chart -->
-    <section class="chart-section">
-      <div id="chart-container">
-        <div id="tooltip" class="tooltip hidden"></div>
+      <div class="control-group">
+        <span class="control-label">Playback</span>
+        <div class="playback-row">
+          <button id="play-btn" class="play-btn" title="Play / Pause">&#9654;</button>
+          <select id="speed-select" class="speed-select">
+            <option value="800">Slow</option>
+            <option value="400" selected>Normal</option>
+            <option value="150">Fast</option>
+          </select>
+        </div>
       </div>
+
     </section>
 
-    <!-- Write-up -->
+    <!-- ── Main Dashboard Grid ──────────────────────────────── -->
+    <div class="dashboard-grid">
+
+      <!-- Line chart (left) -->
+      <section class="panel" id="main-panel">
+        <div class="panel-title">Emissions Over Time
+          <span class="panel-hint">Hover lines · Drag scrubber</span>
+        </div>
+        <div id="main-chart-container">
+          <div id="tooltip" class="tooltip hidden"></div>
+        </div>
+        <!-- Brush context chart below main chart -->
+        <div id="brush-container"></div>
+      </section>
+
+      <!-- Ranking bar chart (right) -->
+      <section class="panel" id="bar-panel">
+        <div class="panel-title">Ranking for <span id="bar-year-label">2005</span>
+          <span class="panel-hint">Updates with scrubber</span>
+        </div>
+        <div id="bar-chart-container"></div>
+      </section>
+
+    </div>
+
+    <!-- ── Write-up ─────────────────────────────────────────── -->
     <section class="writeup">
       <h2>About This Visualization</h2>
 
       <h3>Question</h3>
       <p>
-        Which countries drove global CO<sub>2</sub> emissions growth from 1990 to 2019?
-        This visualization allows users to interactively explore absolute CO<sub>2</sub> emission
-        trajectories for five major economies — the United States, China, Germany, India, and Japan —
-        and investigate how their roles in global emissions have shifted over three decades.
+        Which countries drove global CO<sub>2</sub> emissions growth from 1990 to 2019, and how do
+        their trajectories look in both absolute and per-capita terms? This dashboard lets users
+        interactively explore emission trends for five major economies — the United States, China,
+        Germany, India, and Japan — across multiple coordinated views.
       </p>
 
       <h3>Design Rationale</h3>
       <p>
-        A multi-line time-series chart was chosen because it is the most natural encoding for
-        continuous change over time across multiple entities. Color encodes country identity using a
-        consistent, distinct palette, enabling easy comparison. Absolute emissions (kilotons) rather
-        than per-capita figures were used because the question concerns total climate impact.
-        Alternatives considered included a stacked area chart (rejected — harder to read individual
-        trajectories) and a bar chart race (rejected — obscures long-term trend shapes).
+        The main view uses a multi-line time-series chart — the most natural encoding for continuous
+        change across entities. A coordinated horizontal bar chart on the right shows ranked emissions
+        for a draggable "scrubber" year, making it easy to see how country rankings shifted decade by
+        decade. A brush overview chart below the main chart enables intuitive temporal zooming without
+        numeric sliders. Lines animate on load using a path-length reveal technique, reinforcing the
+        temporal direction of the data.
       </p>
       <p>
-        Four interaction techniques were implemented: (1) <strong>country toggle checkboxes</strong>
-        allow users to focus on specific countries without visual clutter; (2) a <strong>dual
-        year-range slider</strong> supports temporal zooming to examine sub-periods closely;
-        (3) <strong>hover highlighting</strong> with line bolding and dimming helps isolate a single
-        country's trajectory; (4) an interactive <strong>tooltip</strong> provides precise values on
-        demand. Together these support the task of identifying and comparing emissions drivers across
-        the full period as well as within chosen sub-periods.
+        The per-capita toggle reveals a counter-narrative hidden in absolute totals: while China leads
+        in absolute emissions by 2019, it remains well below the US in per-capita terms. Color encodes
+        country identity consistently across all views. Key historical annotations (China's WTO entry,
+        the 2008 financial crisis, the Paris Agreement) provide contextual anchors directly on the
+        chart. Hover tooltips show rank and share of the total, encouraging users to think comparatively
+        rather than in isolation.
       </p>
 
-      <h3>Data Source</h3>
+      <h3>Interaction Techniques</h3>
       <p>
-        World Bank Open Data — CO<sub>2</sub> emissions (kt):
+        Seven interactions are implemented: (1) <strong>country toggles</strong> filter all views
+        simultaneously; (2) a <strong>draggable year scrubber</strong> synchronizes the bar chart and
+        year display; (3) <strong>animated playback</strong> auto-advances the scrubber with adjustable
+        speed; (4) a <strong>D3 brush</strong> on the context chart zooms the main chart's time window;
+        (5) a <strong>per-capita / absolute toggle</strong> transforms the data and rescales both charts;
+        (6) <strong>hover highlighting</strong> dims other lines and shows an enhanced tooltip; (7)
+        <strong>event annotation markers</strong> are clickable to jump the scrubber to that year.
+      </p>
+
+      <h3>Data Sources</h3>
+      <p>
+        CO<sub>2</sub> emissions: World Bank Open Data (EN.ATM.CO2E.KT) —
         <a href="https://data.worldbank.org/indicator/EN.ATM.CO2E.KT" target="_blank">
-          https://data.worldbank.org/indicator/EN.ATM.CO2E.KT
-        </a>
+          data.worldbank.org</a>.
+        Population: World Bank (SP.POP.TOTL) —
+        <a href="https://data.worldbank.org/indicator/SP.POP.TOTL" target="_blank">
+          data.worldbank.org</a>.
       </p>
 
       <h3>Development Process</h3>
       <p>
-        This project was completed individually. Total development time was approximately 6 hours.
-        The most time-consuming aspect was implementing the synchronized dual-handle year-range slider
-        in vanilla JavaScript/D3, and ensuring smooth animated axis and line transitions when filters
-        change. Data preparation and the write-up each took approximately one hour.
+        This project was completed individually. Total development time was approximately 14 hours.
+        The most complex aspects were implementing coordinated linked views (scrubber → bar chart sync),
+        the D3 brush with animated main chart transitions, and the per-capita data transform with
+        smooth axis rescaling. AI was used to aid the research and development process.
       </p>
     </section>
+
   </main>
 
   <footer>
-    <p>Data Visualization Assignment 2 &mdash; Big Data Visualization and Visual Analytics, Spring 2026</p>
+    <p>Data Visualization Assignment 2 &mdash; Big Data Visualization and Visual Analytics, Spring 2026 &mdash;
+      <a href="https://github.com/legendmyth421-coder/co2-viz" target="_blank">Source on GitHub</a>
+    </p>
   </footer>
 
   <script src="https://d3js.org/d3.v7.min.js"></script>
