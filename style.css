@@ -125,7 +125,7 @@ main {
   border: 1.5px solid var(--border);
   background: transparent;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 500;
   color: var(--muted);
   transition: all 0.18s;
@@ -142,6 +142,12 @@ main {
   height: 8px;
   border-radius: 50%;
   background: var(--color);
+  flex-shrink: 0;
+}
+
+.toggle-btn .flag {
+  font-size: 1rem;
+  line-height: 1;
   flex-shrink: 0;
 }
 
@@ -213,12 +219,19 @@ main {
 /* ── Dashboard Grid ───────────────────────────────────────── */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 1fr 320px;
+  grid-template-columns: 1fr 300px;
   gap: 16px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1000px) {
   .dashboard-grid { grid-template-columns: 1fr; }
+}
+
+/* Right column stacks bar + donut vertically */
+.right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 /* ── Panels ───────────────────────────────────────────────── */
@@ -430,6 +443,77 @@ main {
 .writeup p { font-size: 0.88rem; color: #b0b0cc; margin-bottom: 8px; }
 .writeup a { color: #a78bfa; text-decoration: none; }
 .writeup a:hover { text-decoration: underline; }
+
+/* ── Donut Chart ──────────────────────────────────────────── */
+#donut-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 6px 0;
+}
+
+#donut-container svg {
+  width: 100%;
+  max-width: 200px;
+  display: block;
+}
+
+.donut-arc {
+  transition: opacity 0.2s;
+  cursor: pointer;
+}
+
+.donut-arc:hover { opacity: 0.85; }
+
+.donut-total-label {
+  font-size: 13px;
+  font-weight: 800;
+  fill: var(--text);
+}
+
+.donut-total-sub {
+  font-size: 9px;
+  fill: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ── World Map ────────────────────────────────────────────── */
+#map-panel {
+  width: 100%;
+}
+
+#map-container {
+  width: 100%;
+}
+
+#map-container svg {
+  display: block;
+  width: 100%;
+  max-height: 320px;
+}
+
+.country-path {
+  fill: #1e1e3a;
+  stroke: #2a2a4a;
+  stroke-width: 0.4px;
+  transition: stroke 0.15s, stroke-width 0.15s;
+}
+
+.country-path.has-data {
+  cursor: pointer;
+}
+
+.country-path:hover {
+  opacity: 0.85;
+}
+
+/* ── Stacked area ─────────────────────────────────────────── */
+.stacked-area {
+  transition: opacity 0.2s;
+}
+
+.stacked-area:hover { opacity: 0.9; }
 
 /* ── Footer ───────────────────────────────────────────────── */
 footer {
