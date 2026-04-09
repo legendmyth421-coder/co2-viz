@@ -33,6 +33,13 @@ header {
   gap: 12px;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 header h1 {
   font-size: 1.5rem;
   font-weight: 700;
@@ -55,7 +62,14 @@ header .subtitle {
   background: var(--surface2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 8px 20px;
+  padding: 8px 16px;
+}
+
+#cumulative-display #cumulative-value {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #34d399;
+  line-height: 1.2;
 }
 
 .year-label {
@@ -509,11 +523,167 @@ main {
 }
 
 /* ── Stacked area ─────────────────────────────────────────── */
-.stacked-area {
-  transition: opacity 0.2s;
+.stacked-area { transition: opacity 0.2s; }
+.stacked-area:hover { opacity: 0.9; }
+
+/* ── Forecast lines ───────────────────────────────────────── */
+.forecast-line {
+  fill: none;
+  stroke-width: 2px;
+  stroke-dasharray: 6,4;
+  opacity: 0.6;
+  cursor: pointer;
 }
 
-.stacked-area:hover { opacity: 0.9; }
+.forecast-sep {
+  stroke: rgba(167,139,250,0.4);
+  stroke-width: 1px;
+  stroke-dasharray: 3,4;
+}
+
+.forecast-label {
+  font-size: 9px;
+  fill: #a78bfa;
+  pointer-events: none;
+}
+
+/* ── Compare panel ────────────────────────────────────────── */
+#compare-panel {
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+
+.compare-grid {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.stat-card {
+  flex: 1;
+  min-width: 200px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.stat-card-header {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.stat-row:last-child { border-bottom: none; }
+
+.stat-row span { color: var(--muted); }
+.stat-row strong { color: var(--text); }
+
+/* ── Fact card ────────────────────────────────────────────── */
+.fact-card {
+  position: fixed;
+  z-index: 200;
+  background: rgba(13,13,26,0.97);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 16px 18px;
+  width: 250px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+}
+
+.fact-card.hidden { display: none; }
+
+.fact-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.fact-close:hover { color: var(--text); }
+
+.fact-header {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  padding-right: 20px;
+}
+
+.fact-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.fact-row:last-child { border-bottom: none; }
+.fact-row span { color: var(--muted); }
+.fact-row strong { color: var(--text); }
+
+/* ── Export button ────────────────────────────────────────── */
+.export-btn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+
+.export-btn:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+/* ── Map legend ───────────────────────────────────────────── */
+.map-legend-svg {
+  display: block;
+  margin: 4px 0 0 0;
+}
+
+/* ── Compare selected toggle ──────────────────────────────── */
+.toggle-btn.compare-selected {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+  border-color: var(--accent);
+  color: var(--text);
+  box-shadow: 0 0 6px var(--accent);
+}
+
+/* ── Mobile responsive ────────────────────────────────────── */
+@media (max-width: 700px) {
+  header { flex-direction: column; align-items: flex-start; padding: 14px 16px; }
+  .header-right { gap: 8px; }
+  .controls { flex-direction: column; align-items: flex-start; }
+  .control-group { flex-wrap: wrap; }
+  #country-toggles { flex-wrap: wrap; }
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .right-column { flex-direction: row; flex-wrap: wrap; }
+  #donut-container svg { max-width: 150px; }
+  main { padding: 10px 10px 30px; }
+  .mode-toggle { flex-wrap: wrap; }
+}
 
 /* ── Footer ───────────────────────────────────────────────── */
 footer {

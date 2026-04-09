@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CO₂ Emissions Dashboard — Major Economies 1990–2023</title>
+  <title>CO₂ Emissions Dashboard — Major Economies 1990–2030</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -11,19 +11,24 @@
   <header>
     <div class="header-left">
       <h1>CO<sub>2</sub> Emissions Dashboard</h1>
-      <p class="subtitle">Which countries drove global emissions growth? — 11 Major Economies 1990–2023</p>
+      <p class="subtitle">11 Major Economies 1990–2023 + Forecast to 2030</p>
     </div>
     <div class="header-right">
       <div class="year-display">
         <span class="year-label">Selected Year</span>
         <span id="scrubber-year-display">2005</span>
       </div>
+      <div class="year-display" id="cumulative-display">
+        <span class="year-label">Cumulative CO₂</span>
+        <span id="cumulative-value">—</span>
+      </div>
+      <button id="export-btn" class="export-btn" title="Export main chart as PNG">&#8595; PNG</button>
     </div>
   </header>
 
   <main>
 
-    <!-- ── Top Controls ─────────────────────────────────────── -->
+    <!-- ── Controls ─────────────────────────────────────────── -->
     <section class="controls">
 
       <div class="control-group">
@@ -36,6 +41,7 @@
         <div class="mode-toggle">
           <button id="btn-absolute" class="mode-btn active">Absolute (kt)</button>
           <button id="btn-percapita" class="mode-btn">Per Capita (t)</button>
+          <button id="btn-intensity" class="mode-btn">Intensity (kt/B$)</button>
         </div>
       </div>
 
@@ -44,6 +50,20 @@
         <div class="mode-toggle">
           <button id="btn-line" class="mode-btn active">Lines</button>
           <button id="btn-area" class="mode-btn">Stacked Area</button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <span class="control-label">Group</span>
+        <div class="mode-toggle">
+          <button id="btn-region" class="mode-btn">By Region</button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <span class="control-label">Compare</span>
+        <div class="mode-toggle">
+          <button id="btn-compare" class="mode-btn">Compare 2</button>
         </div>
       </div>
 
@@ -61,24 +81,20 @@
 
     </section>
 
-    <!-- ── Main Dashboard Grid ──────────────────────────────── -->
+    <!-- ── Dashboard Grid ───────────────────────────────────── -->
     <div class="dashboard-grid">
 
-      <!-- Line chart (left) -->
       <section class="panel" id="main-panel">
         <div class="panel-title">Emissions Over Time
-          <span class="panel-hint">Hover lines · Drag scrubber · Click annotations</span>
+          <span class="panel-hint">Hover · Drag scrubber · Double-click country for fact card</span>
         </div>
         <div id="main-chart-container">
           <div id="tooltip" class="tooltip hidden"></div>
         </div>
-        <!-- Brush context chart below main chart -->
         <div id="brush-container"></div>
       </section>
 
-      <!-- Right column: bar + donut stacked -->
       <div class="right-column">
-        <!-- Ranking bar chart -->
         <section class="panel" id="bar-panel">
           <div class="panel-title">Ranking for <span id="bar-year-label">2005</span>
             <span class="panel-hint">Updates with scrubber</span>
@@ -86,7 +102,6 @@
           <div id="bar-chart-container"></div>
         </section>
 
-        <!-- Donut share chart -->
         <section class="panel" id="donut-panel">
           <div class="panel-title">Share of Total — <span id="donut-year-label">2005</span>
             <span class="panel-hint">Hover for %</span>
@@ -97,78 +112,64 @@
 
     </div>
 
-    <!-- ── World Map (full width) ───────────────────────────── -->
+    <!-- ── Compare Panel ────────────────────────────────────── -->
+    <section class="panel hidden" id="compare-panel">
+      <div class="panel-title">Country Comparison
+        <span class="panel-hint">Enable "Compare 2" then click two countries</span>
+      </div>
+    </section>
+
+    <!-- ── World Map ────────────────────────────────────────── -->
     <section class="panel" id="map-panel">
       <div class="panel-title">Global Emissions Intensity — <span id="map-year-label">2005</span>
-        <span class="panel-hint">Choropleth · countries outside dataset shown in dark</span>
+        <span class="panel-hint">Choropleth · hover for details</span>
       </div>
       <div id="map-container"></div>
     </section>
+
+    <!-- ── Fact Card ────────────────────────────────────────── -->
+    <div id="fact-card" class="fact-card hidden">
+      <button class="fact-close">&#10005;</button>
+      <div id="fact-content"></div>
+    </div>
 
     <!-- ── Write-up ─────────────────────────────────────────── -->
     <section class="writeup">
       <h2>About This Visualization</h2>
 
       <h3>Question</h3>
-      <p>
-        Which countries drove global CO<sub>2</sub> emissions growth from 1990 to 2023, and how do
-        their trajectories look in both absolute and per-capita terms? This dashboard lets users
-        interactively explore emission trends for 11 major economies across multiple coordinated views.
-      </p>
+      <p>Which countries drove global CO<sub>2</sub> emissions growth from 1990 to 2023, and what does
+        the projected trajectory look like to 2030? This dashboard lets users interactively explore
+        emission trends for 11 major economies across multiple coordinated views.</p>
 
       <h3>Design Rationale</h3>
-      <p>
-        The main view uses a multi-line time-series chart with gradient fills beneath each line,
-        reinforcing country identity and making the area of change visually apparent. A stacked area
-        mode toggle reveals cumulative totals and relative share dynamics. A coordinated horizontal
-        bar chart shows ranked emissions for a draggable "scrubber" year, with flag icons and rank
-        positions that animate smoothly frame by frame. A donut chart shows each country's share of
-        the active total for the selected year. A full-width choropleth world map colors each country
-        on a yellow-to-red sequential scale, providing immediate geographic context.
-      </p>
-      <p>
-        The per-capita toggle reveals a counter-narrative hidden in absolute totals: while China leads
-        in absolute emissions by 2019, it remains well below the US and Saudi Arabia in per-capita
-        terms. Color encodes country identity consistently across all views. Key historical annotations
-        (USSR collapse, Kyoto Protocol, China's WTO entry, the 2008 financial crisis, the Paris
-        Agreement) provide contextual anchors directly on the chart. Hover tooltips show rank and
-        share of the total, encouraging users to think comparatively rather than in isolation.
-      </p>
+      <p>The main view uses a multi-line time-series chart with gradient fills. Historical data (solid
+        lines) is visually separated from the 2024–2030 forecast (dashed lines) by a vertical separator.
+        A stacked area mode reveals cumulative totals. Three metric modes — absolute, per capita, and
+        GDP intensity — let users explore different dimensions of the same data. A coordinated bar chart,
+        donut share chart, and choropleth world map with a color-scale legend all update together as
+        the scrubber year changes. Region grouping aggregates by Americas / Asia / Europe for a
+        higher-level view. Country comparison mode shows side-by-side stat cards for any two countries.
+        Double-clicking a country toggle opens a floating fact card with key statistics.</p>
 
       <h3>Interaction Techniques</h3>
-      <p>
-        Nine interactions are implemented: (1) <strong>country toggles</strong> with flag icons filter
-        all views simultaneously; (2) a <strong>draggable year scrubber</strong> synchronizes the bar
-        chart, donut, map, and year display; (3) <strong>animated playback</strong> auto-advances the
-        scrubber with adjustable speed; (4) a <strong>D3 brush</strong> on the context chart zooms the
-        main chart's time window; (5) a <strong>per-capita / absolute toggle</strong> transforms the
-        data across all charts; (6) a <strong>chart type toggle</strong> switches between line and
-        stacked area modes; (7) <strong>hover highlighting</strong> dims other lines and shows an
-        enhanced tooltip; (8) <strong>event annotation markers</strong> are clickable to jump the
-        scrubber to that year; (9) <strong>map hover tooltips</strong> show country details on the
-        choropleth.
-      </p>
+      <p>Implemented interactions: (1) country toggles with flags; (2) draggable year scrubber syncing
+        all views; (3) animated playback with speed control; (4) D3 brush for time zoom; (5) three
+        metric toggles (absolute / per capita / intensity); (6) line vs. stacked area chart type;
+        (7) region grouping; (8) compare mode with stat cards; (9) hover highlighting + tooltip;
+        (10) clickable event annotations; (11) map hover tooltip; (12) map color-scale legend;
+        (13) country fact cards on double-click; (14) cumulative emissions counter; (15) PNG export.</p>
 
       <h3>Data Sources</h3>
-      <p>
-        CO<sub>2</sub> emissions: World Bank Open Data (EN.ATM.CO2E.KT) —
-        <a href="https://data.worldbank.org/indicator/EN.ATM.CO2E.KT" target="_blank">
-          data.worldbank.org</a>.
-        Population: World Bank (SP.POP.TOTL) —
-        <a href="https://data.worldbank.org/indicator/SP.POP.TOTL" target="_blank">
-          data.worldbank.org</a>.
-        World map topology: Natural Earth via
+      <p>CO<sub>2</sub> emissions: World Bank (EN.ATM.CO2E.KT).
+        Population: World Bank (SP.POP.TOTL).
+        GDP: World Bank (NY.GDP.MKTP.CD).
+        World map: Natural Earth via
         <a href="https://cdn.jsdelivr.net/npm/world-atlas@2/" target="_blank">world-atlas@2</a>.
-      </p>
+        Forecast: linear extrapolation from 2020–2023 trend.</p>
 
       <h3>Development Process</h3>
-      <p>
-        This project was completed individually. Total development time was approximately 20 hours.
-        The most complex aspects were implementing coordinated linked views across four panels,
-        the D3 brush with animated main chart transitions, the stacked area mode, the choropleth
-        world map with TopoJSON, and the per-capita data transform with smooth axis rescaling.
-        AI was used to aid the research and development process.
-      </p>
+      <p>This project was completed individually. AI was used to aid the research and development process.</p>
     </section>
 
   </main>
