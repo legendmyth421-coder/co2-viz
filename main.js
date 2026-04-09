@@ -46,7 +46,8 @@ const EVENTS = [
   { year: 2001, label: "China WTO entry", dy: -18 },
   { year: 2005, label: "US peak",         dy: -18 },
   { year: 2008, label: "Finance crisis",  dy: 22  },
-  { year: 2015, label: "Paris Agreement", dy: -18 }
+  { year: 2015, label: "Paris Agreement", dy: -18 },
+  { year: 2020, label: "COVID-19",         dy: 22  }
 ];
 
 const MM  = { top: 28, right: 110, bottom: 36, left: 68 };
@@ -59,7 +60,7 @@ let activeSet    = new Set();
 let perCapita    = false;
 let areaMode     = false;
 let scrubYear    = 2005;
-let brushDomain  = [1990, 2019];
+let brushDomain  = [1990, 2023];
 let hoveredCntry = null;
 let playing      = false;
 let playTimer    = null;
@@ -208,7 +209,7 @@ function initMainChart() {
 
   mainG = mainSvg.append("g").attr("transform", `translate(${MM.left},${MM.top})`);
 
-  xMain = d3.scaleLinear().domain([1990, 2019]).range([0, mainW]);
+  xMain = d3.scaleLinear().domain([1990, 2023]).range([0, mainW]);
   yMain = d3.scaleLinear().domain([0, 14000]).range([mainH, 0]);
 
   // Gridlines
@@ -541,7 +542,7 @@ function initBrushChart() {
 
   brushG = brushSvg.append("g").attr("transform", `translate(${BMM.left},${BMM.top})`);
 
-  xBrush = d3.scaleLinear().domain([1990, 2019]).range([0, brushW]);
+  xBrush = d3.scaleLinear().domain([1990, 2023]).range([0, brushW]);
   yBrush = d3.scaleLinear().range([brushH, 0]);
 
   brushG.append("g").attr("class", "axis x-axis")
@@ -555,7 +556,7 @@ function initBrushChart() {
     .on("brush end", onBrush);
 
   brushG.append("g").attr("class", "brush").call(d3brush);
-  brushG.select(".brush").call(d3brush.move, [xBrush(1990), xBrush(2019)]);
+  brushG.select(".brush").call(d3brush.move, [xBrush(1990), xBrush(2023)]);
 }
 
 function updateBrush() {
