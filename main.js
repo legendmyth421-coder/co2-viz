@@ -104,7 +104,9 @@ Promise.all([
   initBarChart();
   initDonutChart();
   initMapChart();
+  initBubble();
   setupControls();
+  setupExportButtons();
 
   updateMain(true);
   updateBrush();
@@ -112,6 +114,8 @@ Promise.all([
   updateDonut();
   updateMap();
   updateCumulative();
+  updateKPI();
+  initHeatmap();
 }).catch(err=>{
   console.error(err);
   document.getElementById("main-chart-container").innerHTML=
@@ -212,11 +216,8 @@ function onToggleClick(c,btn,e){
     btn.style.setProperty("--color",COLOR[c]||"#888");
     btn.innerHTML=`<span class="swatch"></span><span class="flag">${FLAGS[c]||""}</span>${c}`;
   }
-  updateMain(false);updateBrush();updateBar();updateDonut();updateMap();updateCumulative();
+  updateMain(false);updateBrush();updateBar();updateDonut();updateMap();updateCumulative();updateKPI();updateHeatmap();updateBubble();
 }
-
-// ══════════════════════════════════════════════════════════════
-// 4. MAIN CHART
 // ══════════════════════════════════════════════════════════════
 function initMainChart(){
   const el=document.getElementById("main-chart-container");
@@ -473,6 +474,9 @@ function setScrubYear(y){
   updateDonut();
   updateMap();
   updateCumulative();
+  updateKPI();
+  updateBubble();
+  highlightHeatmapYear();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -566,11 +570,8 @@ function onBrush(event){
   if(y0===brushDomain[0]&&y1===brushDomain[1]) return;
   brushDomain=[y0,y1];
   scrubYear=Math.max(y0,Math.min(y1,scrubYear));
-  updateMain(false);updateBar();updateDonut();updateMap();updateCumulative();
+  updateMain(false);updateBar();updateDonut();updateMap();updateCumulative();updateKPI();updateBubble();
 }
-
-// ══════════════════════════════════════════════════════════════
-// 8. RANKING BAR CHART
 // ══════════════════════════════════════════════════════════════
 function initBarChart(){
   const el=document.getElementById("bar-chart-container");
@@ -886,7 +887,7 @@ function setupControls(){
       [btnAbsolute,btnPercapita,btnIntensity].forEach(b=>b.classList.remove("active"));
       btn.classList.add("active");
       metricMode=btn.id==="btn-absolute"?"absolute":btn.id==="btn-percapita"?"percapita":"intensity";
-      updateMain(false);updateBrush();updateBar();updateDonut();updateMap();updateCumulative();
+      updateMain(false);updateBrush();updateBar();updateDonut();updateMap();updateCumulative();updateKPI();updateHeatmap();updateBubble();
     });
   });
 
@@ -919,7 +920,7 @@ function setupControls(){
     }
   });
 
-  // Export
+  // Export PNG (header button)
   document.getElementById("export-btn")?.addEventListener("click",exportPNG);
 
   // Fact card close
@@ -928,6 +929,12 @@ function setupControls(){
     if(factCard&&!factCard.classList.contains("hidden")){
       if(!factCard.contains(e.target)&&!e.target.classList.contains("toggle-btn")&&!e.target.closest(".toggle-btn")) closeFactCard();
     }
+  });
+}
+
+function setupExportButtons(){
+  document.querySelectorAll(".export-chart-btn").forEach(btn=>{
+    btn.addEventListener("click",()=>exportChartSVG(btn.dataset.chart));
   });
 }
 
@@ -944,3 +951,318 @@ function moveTooltip(event,containerId){
   tooltip.style.left=x+"px";tooltip.style.top=y+"px";
 }
 function hideTooltip(){tooltip.classList.add("hidden");}
+
+// ══════════════════════════════════════════════════════════════
+// 17. KPI HEADLINE BAR
+// ══════════════════════════════════════════════════════════════
+function updateKPI(){
+  const yr   = scrubYear;
+  const prev = yr - 1;
+  const slice  = allData.filter(d=>activeSet.has(d.country)&&!d.forecast&&d.year===yr);
+  const sliceP = allData.filter(d=>activeSet.has(d.country)&&!d.forecast&&d.year===prev);
+  if(!slice.length) return;
+
+  // Total
+  const total  = d3.sum(slice, d=>d.emissions);
+  const totalP = d3.sum(sliceP, d=>d.emissions);
+  const totalFmt = total>=1e6?(total/1e6).toFixed(2)+" Gt":d3.format(",")(Math.round(total))+" kt";
+  document.getElementById("kpi-total-val").textContent = totalFmt;
+  document.getElementById("kpi-total-sub").textContent = activeSet.size+" countries";
+
+  // Top emitter
+  const top = slice.reduce((a,b)=>b.emissions>a.emissions?b:a);
+  document.getElementById("kpi-top-val").textContent = (FLAGS[top.country]||"")+" "+top.country;
+  document.getElementById("kpi-top-val").style.color  = COLOR[top.country]||"var(--text)";
+  document.getElementById("kpi-top-sub").textContent  = d3.format(",")(top.emissions)+" kt";
+
+  // YoY change
+  const yoyEl  = document.getElementById("kpi-yoy-val");
+  if(totalP>0){
+    const pct = ((total-totalP)/totalP*100);
+    const sign = pct>=0?"+":"";
+    yoyEl.textContent = sign+pct.toFixed(1)+"%";
+    yoyEl.style.color = pct>0?"#f87171":"#4ade80";
+  } else { yoyEl.textContent="—"; }
+
+  // Highest per capita
+  const pcArr = slice.map(d=>({country:d.country,pc:(d.emissions*1000)/(d.population*1e6)}));
+  const pcTop = pcArr.reduce((a,b)=>b.pc>a.pc?b:a);
+  document.getElementById("kpi-pc-val").textContent = (FLAGS[pcTop.country]||"")+" "+pcTop.country;
+  document.getElementById("kpi-pc-val").style.color  = COLOR[pcTop.country]||"var(--text)";
+  document.getElementById("kpi-pc-sub").textContent  = pcTop.pc.toFixed(2)+" t/person";
+
+  // Fastest growing vs 1990
+  const growthArr = slice.map(d=>{
+    const base = allData.find(r=>r.country===d.country&&r.year===1990);
+    const pct  = base&&base.emissions>0?((d.emissions-base.emissions)/base.emissions*100):0;
+    return {country:d.country,pct};
+  }).filter(d=>d.pct>0);
+  if(growthArr.length){
+    const fastest = growthArr.reduce((a,b)=>b.pct>a.pct?b:a);
+    document.getElementById("kpi-growth-val").textContent = (FLAGS[fastest.country]||"")+" "+fastest.country;
+    document.getElementById("kpi-growth-val").style.color  = COLOR[fastest.country]||"var(--text)";
+    document.getElementById("kpi-growth-sub").textContent  = "+"+fastest.pct.toFixed(0)+"% since 1990";
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// 18. HEATMAP
+// ══════════════════════════════════════════════════════════════
+let heatmapSvg, heatmapG;
+
+function initHeatmap(){
+  // drawn fully in updateHeatmap on first call
+  updateHeatmap();
+}
+
+function updateHeatmap(){
+  const container = document.getElementById("heatmap-container");
+  container.innerHTML = "";
+
+  const countries = [...activeSet];
+  const allYears  = [...new Set(allData.map(d=>d.year))].sort(d3.ascending);
+
+  const cellH  = 22;
+  const cellW  = Math.max(12, Math.floor((container.clientWidth||900) / allYears.length) - 1);
+  const left   = 130, top = 24, right = 10, bottom = 28;
+  const svgW   = left + allYears.length * (cellW+1) + right;
+  const svgH   = top + countries.length * (cellH+2) + bottom;
+
+  heatmapSvg = d3.select("#heatmap-container").append("svg")
+    .attr("viewBox",`0 0 ${svgW} ${svgH}`)
+    .attr("preserveAspectRatio","xMinYMid meet");
+
+  heatmapG = heatmapSvg.append("g").attr("transform",`translate(${left},${top})`);
+
+  // X axis (years)
+  const xHM = d3.scaleBand().domain(allYears).range([0, allYears.length*(cellW+1)]).padding(0.05);
+  heatmapG.append("g").attr("class","axis x-axis hm-x")
+    .attr("transform",`translate(0,${countries.length*(cellH+2)+2})`)
+    .call(d3.axisBottom(xHM).tickValues(allYears.filter(y=>y%5===0)).tickFormat(d3.format("d")));
+
+  // Y axis (countries)
+  const yHM = d3.scaleBand().domain(countries).range([0, countries.length*(cellH+2)]).padding(0.08);
+  heatmapG.append("g").attr("class","axis y-axis")
+    .call(d3.axisLeft(yHM).tickFormat(c=>(FLAGS[c]||"")+" "+c));
+
+  // Per-row color scales
+  countries.forEach((country, ci)=>{
+    const rowData = allData.filter(d=>d.country===country);
+    const vals    = rowData.map(d=>getValue(d));
+    const rMin    = d3.min(vals)||0;
+    const rMax    = d3.max(vals)||1;
+    const cScale  = d3.scaleSequential(d3.interpolateInferno).domain([rMin, rMax]);
+
+    allYears.forEach((yr, xi)=>{
+      const rec  = rowData.find(d=>d.year===yr);
+      const val  = rec ? getValue(rec) : null;
+      const x    = xi*(cellW+1);
+      const y    = ci*(cellH+2);
+
+      heatmapG.append("rect")
+        .attr("class","hm-cell")
+        .attr("x", x).attr("y", y)
+        .attr("width", cellW).attr("height", cellH)
+        .attr("rx", 2)
+        .attr("fill", val!==null ? cScale(val) : "#1e1e3a")
+        .attr("opacity", rec&&rec.forecast ? 0.45 : 1)
+        .style("cursor","pointer")
+        .on("mouseover", function(event){
+          d3.select(this).attr("stroke","#fff").attr("stroke-width",1.5);
+          const vFmt = val!==null ? fmtVal(val) : "no data";
+          tooltip.innerHTML=`<div class="tooltip-country" style="color:${COLOR[country]||'#fff'}">${FLAGS[country]||""} ${country}</div><div class="tooltip-row">Year: <strong>${yr}</strong></div><div class="tooltip-row">Value: <strong>${vFmt}</strong>${rec&&rec.forecast?' <em style="color:#a78bfa">(forecast)</em>':''}</div>`;
+          tooltip.classList.remove("hidden");
+          moveTooltip(event,"heatmap-container");
+        })
+        .on("mouseout", function(){
+          d3.select(this).attr("stroke",null);
+          hideTooltip();
+        })
+        .on("click", ()=>setScrubYear(yr));
+    });
+  });
+
+  // Highlight current scrub year column
+  highlightHeatmapYear();
+}
+
+function highlightHeatmapYear(){
+  if(!heatmapG) return;
+  const allYears = [...new Set(allData.map(d=>d.year))].sort(d3.ascending);
+  const countries = [...activeSet];
+  const cellW = Math.max(12, Math.floor((document.getElementById("heatmap-container").clientWidth||900) / allYears.length)-1);
+  const cellH = 22;
+  heatmapG.selectAll(".hm-year-highlight").remove();
+  const xi = allYears.indexOf(scrubYear);
+  if(xi<0) return;
+  heatmapG.append("rect").attr("class","hm-year-highlight")
+    .attr("x", xi*(cellW+1)-1).attr("y",-4)
+    .attr("width", cellW+2)
+    .attr("height", countries.length*(cellH+2)+4)
+    .attr("fill","none").attr("stroke","rgba(167,139,250,0.8)")
+    .attr("stroke-width",1.5).attr("rx",2)
+    .attr("pointer-events","none");
+}
+
+// ══════════════════════════════════════════════════════════════
+// 19. BUBBLE CHART
+// ══════════════════════════════════════════════════════════════
+let bubbleSvg, bubbleG, bubbleW, bubbleH;
+let xBubble, yBubble, rBubble;
+const BM = {top:20, right:30, bottom:46, left:68};
+
+function initBubble(){
+  const el  = document.getElementById("bubble-container");
+  const tot = el.clientWidth||700;
+  bubbleW   = tot - BM.left - BM.right;
+  bubbleH   = Math.min(380, Math.round(bubbleW*0.52));
+
+  bubbleSvg = d3.select("#bubble-container").append("svg")
+    .attr("viewBox",`0 0 ${tot} ${bubbleH+BM.top+BM.bottom}`)
+    .attr("preserveAspectRatio","xMidYMid meet");
+
+  bubbleG = bubbleSvg.append("g").attr("transform",`translate(${BM.left},${BM.top})`);
+
+  // Scales — domains set in updateBubble
+  xBubble = d3.scaleLog().range([0, bubbleW]);
+  yBubble = d3.scaleLinear().range([bubbleH, 0]);
+  rBubble = d3.scaleSqrt().range([6, 44]);
+
+  bubbleG.append("g").attr("class","axis x-axis bubble-x")
+    .attr("transform",`translate(0,${bubbleH})`);
+  bubbleG.append("g").attr("class","axis y-axis bubble-y");
+
+  // Axis labels
+  bubbleG.append("text").attr("class","axis-label")
+    .attr("x",bubbleW/2).attr("y",bubbleH+38)
+    .attr("text-anchor","middle").text("GDP (billion USD, log scale)");
+  bubbleG.append("text").attr("class","axis-label")
+    .attr("transform","rotate(-90)").attr("x",-bubbleH/2).attr("y",-54)
+    .attr("text-anchor","middle").attr("id","bubble-y-label").text(getLabel());
+
+  bubbleG.append("g").attr("class","trend-group");
+  bubbleG.append("g").attr("class","bubbles-group");
+  bubbleG.append("g").attr("class","bubble-labels-group");
+
+  updateBubble();
+}
+
+function updateBubble(){
+  if(!bubbleSvg) return;
+  const yr    = scrubYear;
+  const slice = allData.filter(d=>activeSet.has(d.country)&&d.year===yr&&(d.gdp||0)>0);
+  if(!slice.length) return;
+
+  const xVals = slice.map(d=>d.gdp);
+  const yVals = slice.map(d=>getValue(d));
+  const rVals = slice.map(d=>d.population);
+
+  xBubble.domain([d3.min(xVals)*0.7, d3.max(xVals)*1.4]);
+  yBubble.domain([0, d3.max(yVals)*1.15]);
+  rBubble.domain([0, d3.max(rVals)]);
+
+  const dur  = 500;
+  const ease = d3.easeCubicInOut;
+
+  const xAxisFn = d3.axisBottom(xBubble).ticks(6).tickFormat(v=>(v>=1000?(v/1000).toFixed(0)+"T":v+"B"));
+  const yAxisFn = d3.axisLeft(yBubble).ticks(5).tickFormat(v=>metricMode==="percapita"?v.toFixed(1):metricMode==="intensity"?v.toFixed(1):(v/1000).toFixed(0)+"k");
+
+  bubbleG.select(".bubble-x").transition().duration(dur).ease(ease).call(xAxisFn);
+  bubbleG.select(".bubble-y").transition().duration(dur).ease(ease).call(yAxisFn);
+  bubbleG.select("#bubble-y-label").text(getLabel());
+
+  // Regression trend line (log-space x)
+  const logPairs = slice.map(d=>[Math.log(d.gdp), getValue(d)]);
+  const n  = logPairs.length;
+  const mx = d3.mean(logPairs,d=>d[0]);
+  const my = d3.mean(logPairs,d=>d[1]);
+  const b1 = d3.sum(logPairs,d=>(d[0]-mx)*(d[1]-my)) / d3.sum(logPairs,d=>(d[0]-mx)**2);
+  const b0 = my - b1*mx;
+  const xMinLog = Math.log(d3.min(xVals)*0.7);
+  const xMaxLog = Math.log(d3.max(xVals)*1.4);
+  const trendLine = bubbleG.select(".trend-group").selectAll(".trend-line").data([1]);
+  trendLine.enter().append("line").attr("class","trend-line")
+    .merge(trendLine).transition().duration(dur).ease(ease)
+    .attr("x1",xBubble(Math.exp(xMinLog))).attr("x2",xBubble(Math.exp(xMaxLog)))
+    .attr("y1",yBubble(b0+b1*xMinLog)).attr("y2",yBubble(b0+b1*xMaxLog));
+
+  // Bubbles
+  const bG    = bubbleG.select(".bubbles-group");
+  const circs = bG.selectAll(".bubble-circle").data(slice, d=>d.country);
+
+  circs.enter().append("circle").attr("class","bubble-circle")
+    .attr("fill",d=>COLOR[d.country]||"#888")
+    .attr("fill-opacity",0.72)
+    .attr("stroke",d=>COLOR[d.country]||"#888")
+    .attr("stroke-width",1.5)
+    .attr("cx",d=>xBubble(d.gdp))
+    .attr("cy",d=>yBubble(getValue(d)))
+    .attr("r",d=>rBubble(d.population))
+    .on("mouseover",function(event,d){
+      d3.select(this).attr("stroke","#fff").attr("stroke-width",2.5);
+      const pc = ((d.emissions*1000)/(d.population*1e6)).toFixed(2);
+      tooltip.innerHTML=`<div class="tooltip-country" style="color:${COLOR[d.country]}">${FLAGS[d.country]||""} ${d.country}</div><div class="tooltip-row">GDP: <strong>$${d3.format(",")(Math.round(d.gdp))}B</strong></div><div class="tooltip-row">Emissions: <strong>${d3.format(",")(d.emissions)} kt</strong></div><div class="tooltip-row">Population: <strong>${d.population.toFixed(1)}M</strong></div><div class="tooltip-row">Per capita: <strong>${pc} t/person</strong></div>`;
+      tooltip.classList.remove("hidden");
+      moveTooltip(event,"bubble-container");
+    })
+    .on("mouseout",function(e,d){
+      d3.select(this).attr("stroke",COLOR[d.country]||"#888").attr("stroke-width",1.5);
+      hideTooltip();
+    })
+    .merge(circs)
+    .transition().duration(dur).ease(ease)
+    .attr("cx",d=>xBubble(d.gdp))
+    .attr("cy",d=>yBubble(getValue(d)))
+    .attr("r",d=>rBubble(d.population))
+    .attr("fill",d=>COLOR[d.country]||"#888");
+
+  circs.exit().transition().duration(dur/2).style("opacity",0).remove();
+
+  // Labels
+  const lG   = bubbleG.select(".bubble-labels-group");
+  const lbls = lG.selectAll(".bubble-label").data(slice, d=>d.country);
+  lbls.enter().append("text").attr("class","bubble-label")
+    .attr("fill",d=>COLOR[d.country]||"#888")
+    .attr("text-anchor","middle")
+    .attr("pointer-events","none")
+    .merge(lbls)
+    .transition().duration(dur).ease(ease)
+    .attr("x",d=>xBubble(d.gdp))
+    .attr("y",d=>yBubble(getValue(d))-rBubble(d.population)-4)
+    .text(d=>(FLAGS[d.country]||"")+" "+d.country.split(" ").slice(-1)[0]);
+  lbls.exit().remove();
+
+  // Update bubble year label
+  const byl = document.getElementById("bubble-year-label");
+  if(byl) byl.textContent = yr;
+}
+
+// ══════════════════════════════════════════════════════════════
+// 20. PER-CHART SVG EXPORT
+// ══════════════════════════════════════════════════════════════
+let heatSvgRef = null; // alias set after init
+
+function exportChartSVG(chartId){
+  const svgMap = {
+    main:    mainSvg,
+    bar:     barSvg,
+    donut:   donutSvg,
+    map:     mapSvg,
+    heatmap: heatmapSvg,
+    bubble:  bubbleSvg
+  };
+  const svgSel = svgMap[chartId];
+  if(!svgSel) return;
+  const node = svgSel.node ? svgSel.node() : svgSel;
+  if(!node) return;
+  const clone = node.cloneNode(true);
+  clone.setAttribute("xmlns","http://www.w3.org/2000/svg");
+  const bg = document.createElementNS("http://www.w3.org/2000/svg","rect");
+  bg.setAttribute("width","100%");bg.setAttribute("height","100%");bg.setAttribute("fill","#0d0d1a");
+  clone.insertBefore(bg,clone.firstChild);
+  const blob = new Blob([new XMLSerializer().serializeToString(clone)],{type:"image/svg+xml"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `co2-${chartId}-${scrubYear}.svg`;
+  a.click();
+}

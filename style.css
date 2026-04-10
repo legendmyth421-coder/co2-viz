@@ -265,6 +265,8 @@ main {
   color: var(--text);
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -671,6 +673,7 @@ main {
   box-shadow: 0 0 6px var(--accent);
 }
 
+
 /* ── Mobile responsive ────────────────────────────────────── */
 @media (max-width: 700px) {
   header { flex-direction: column; align-items: flex-start; padding: 14px 16px; }
@@ -683,9 +686,126 @@ main {
   #donut-container svg { max-width: 150px; }
   main { padding: 10px 10px 30px; }
   .mode-toggle { flex-wrap: wrap; }
+  .kpi-bar { grid-template-columns: 1fr 1fr; }
 }
 
-/* ── Footer ───────────────────────────────────────────────── */
+/* ══ KPI Headline Bar ═════════════════════════════════════════════ */
+.kpi-bar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin: 0 0 16px 0;
+}
+
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: border-color 0.2s;
+}
+.kpi-card:hover { border-color: var(--accent); }
+
+.kpi-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.kpi-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.3s;
+}
+
+.kpi-sub {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+/* ══ Per-chart export button ═════════════════════════════════════ */
+.export-chart-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+  flex-shrink: 0;
+}
+.export-chart-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(139,92,246,0.08);
+}
+
+/* ══ Heatmap ═════════════════════════════════════════════════════ */
+#heatmap-container {
+  overflow-x: auto;
+  margin-top: 6px;
+}
+
+#heatmap-container svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.hm-cell {
+  transition: opacity 0.3s;
+}
+
+.hm-x text {
+  font-size: 10px;
+  fill: var(--muted);
+}
+
+/* ══ Bubble chart ════════════════════════════════════════════════ */
+#bubble-container {
+  margin-top: 6px;
+}
+
+#bubble-container svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.bubble-circle {
+  cursor: pointer;
+  transition: r 0.4s, opacity 0.3s;
+}
+
+.bubble-label {
+  font-size: 10px;
+  font-weight: 600;
+  paint-order: stroke fill;
+  stroke: var(--bg);
+  stroke-width: 3px;
+  transition: all 0.4s;
+}
+
+.trend-line {
+  stroke: rgba(167,139,250,0.35);
+  stroke-width: 1.5;
+  stroke-dasharray: 5,4;
+  fill: none;
+  pointer-events: none;
+}
+
+/* ══ Footer ═════════════════════════════════════════════════════ */
 footer {
   text-align: center;
   padding: 20px;

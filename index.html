@@ -81,12 +81,44 @@
 
     </section>
 
+    <!-- ── KPI Headline Bar ──────────────────────────────────── -->
+    <section class="kpi-bar" id="kpi-bar">
+      <div class="kpi-card" id="kpi-total">
+        <div class="kpi-label">Total Emissions</div>
+        <div class="kpi-value" id="kpi-total-val">—</div>
+        <div class="kpi-sub" id="kpi-total-sub">active countries</div>
+      </div>
+      <div class="kpi-card" id="kpi-top">
+        <div class="kpi-label">Top Emitter</div>
+        <div class="kpi-value" id="kpi-top-val">—</div>
+        <div class="kpi-sub" id="kpi-top-sub">—</div>
+      </div>
+      <div class="kpi-card" id="kpi-yoy">
+        <div class="kpi-label">YoY Change (Total)</div>
+        <div class="kpi-value" id="kpi-yoy-val">—</div>
+        <div class="kpi-sub" id="kpi-yoy-sub">vs previous year</div>
+      </div>
+      <div class="kpi-card" id="kpi-pc">
+        <div class="kpi-label">Highest Per Capita</div>
+        <div class="kpi-value" id="kpi-pc-val">—</div>
+        <div class="kpi-sub" id="kpi-pc-sub">—</div>
+      </div>
+      <div class="kpi-card" id="kpi-growth">
+        <div class="kpi-label">Fastest Growing (vs 1990)</div>
+        <div class="kpi-value" id="kpi-growth-val">—</div>
+        <div class="kpi-sub" id="kpi-growth-sub">—</div>
+      </div>
+    </section>
+
     <!-- ── Dashboard Grid ───────────────────────────────────── -->
     <div class="dashboard-grid">
 
       <section class="panel" id="main-panel">
-        <div class="panel-title">Emissions Over Time
-          <span class="panel-hint">Hover · Drag scrubber · Double-click country for fact card</span>
+        <div class="panel-title">
+          <span>Emissions Over Time
+            <span class="panel-hint">Hover · Drag scrubber · Double-click country for fact card</span>
+          </span>
+          <button class="export-chart-btn" data-chart="main">&#8595; SVG</button>
         </div>
         <div id="main-chart-container">
           <div id="tooltip" class="tooltip hidden"></div>
@@ -96,15 +128,21 @@
 
       <div class="right-column">
         <section class="panel" id="bar-panel">
-          <div class="panel-title">Ranking for <span id="bar-year-label">2005</span>
-            <span class="panel-hint">Updates with scrubber</span>
+          <div class="panel-title">
+            <span>Ranking for <span id="bar-year-label">2005</span>
+              <span class="panel-hint">Updates with scrubber</span>
+            </span>
+            <button class="export-chart-btn" data-chart="bar">&#8595; SVG</button>
           </div>
           <div id="bar-chart-container"></div>
         </section>
 
         <section class="panel" id="donut-panel">
-          <div class="panel-title">Share of Total — <span id="donut-year-label">2005</span>
-            <span class="panel-hint">Hover for %</span>
+          <div class="panel-title">
+            <span>Share of Total — <span id="donut-year-label">2005</span>
+              <span class="panel-hint">Hover for %</span>
+            </span>
+            <button class="export-chart-btn" data-chart="donut">&#8595; SVG</button>
           </div>
           <div id="donut-container"></div>
         </section>
@@ -114,17 +152,44 @@
 
     <!-- ── Compare Panel ────────────────────────────────────── -->
     <section class="panel hidden" id="compare-panel">
-      <div class="panel-title">Country Comparison
-        <span class="panel-hint">Enable "Compare 2" then click two countries</span>
+      <div class="panel-title">
+        <span>Country Comparison
+          <span class="panel-hint">Enable "Compare 2" then click two countries</span>
+        </span>
       </div>
     </section>
 
     <!-- ── World Map ────────────────────────────────────────── -->
     <section class="panel" id="map-panel">
-      <div class="panel-title">Global Emissions Intensity — <span id="map-year-label">2005</span>
-        <span class="panel-hint">Choropleth · hover for details</span>
+      <div class="panel-title">
+        <span>Global Emissions Intensity — <span id="map-year-label">2005</span>
+          <span class="panel-hint">Choropleth · hover for details</span>
+        </span>
+        <button class="export-chart-btn" data-chart="map">&#8595; SVG</button>
       </div>
       <div id="map-container"></div>
+    </section>
+
+    <!-- ── Heatmap ──────────────────────────────────────────── -->
+    <section class="panel" id="heatmap-panel">
+      <div class="panel-title">
+        <span>Emissions Heatmap — Country &times; Year
+          <span class="panel-hint">Color = value · Click cell = set year · Row = per-country scale</span>
+        </span>
+        <button class="export-chart-btn" data-chart="heatmap">&#8595; SVG</button>
+      </div>
+      <div id="heatmap-container"></div>
+    </section>
+
+    <!-- ── Bubble Chart ─────────────────────────────────────── -->
+    <section class="panel" id="bubble-panel">
+      <div class="panel-title">
+        <span>GDP vs Emissions — <span id="bubble-year-label">2005</span>
+          <span class="panel-hint">X = GDP (log) · Y = Emissions · Size = Population · Trend line shown</span>
+        </span>
+        <button class="export-chart-btn" data-chart="bubble">&#8595; SVG</button>
+      </div>
+      <div id="bubble-container"></div>
     </section>
 
     <!-- ── Fact Card ────────────────────────────────────────── -->
@@ -143,28 +208,24 @@
         emission trends for 11 major economies across multiple coordinated views.</p>
 
       <h3>Design Rationale</h3>
-      <p>The main view uses a multi-line time-series chart with gradient fills. Historical data (solid
-        lines) is visually separated from the 2024–2030 forecast (dashed lines) by a vertical separator.
-        A stacked area mode reveals cumulative totals. Three metric modes — absolute, per capita, and
-        GDP intensity — let users explore different dimensions of the same data. A coordinated bar chart,
-        donut share chart, and choropleth world map with a color-scale legend all update together as
-        the scrubber year changes. Region grouping aggregates by Americas / Asia / Europe for a
-        higher-level view. Country comparison mode shows side-by-side stat cards for any two countries.
-        Double-clicking a country toggle opens a floating fact card with key statistics.</p>
+      <p>Seven coordinated chart types provide complementary perspectives on the same dataset: a
+        multi-line time-series chart (with gradient fills and forecast dashes), a stacked area mode,
+        a ranked horizontal bar chart, a donut share chart, a choropleth world map, a country×year
+        heatmap, and a GDP-vs-emissions bubble chart. KPI headline cards surface the most important
+        numbers at a glance. Three metric modes — absolute, per capita, and GDP intensity — let users
+        explore different dimensions. Region grouping aggregates to Americas/Asia/Europe. Compare mode
+        shows side-by-side stat cards for any two countries.</p>
 
       <h3>Interaction Techniques</h3>
-      <p>Implemented interactions: (1) country toggles with flags; (2) draggable year scrubber syncing
-        all views; (3) animated playback with speed control; (4) D3 brush for time zoom; (5) three
-        metric toggles (absolute / per capita / intensity); (6) line vs. stacked area chart type;
-        (7) region grouping; (8) compare mode with stat cards; (9) hover highlighting + tooltip;
-        (10) clickable event annotations; (11) map hover tooltip; (12) map color-scale legend;
-        (13) country fact cards on double-click; (14) cumulative emissions counter; (15) PNG export.</p>
+      <p>Fifteen interactions: country toggles with flags; draggable year scrubber; animated playback;
+        D3 brush zoom; absolute/per-capita/intensity toggle; line vs stacked area; region grouping;
+        compare mode; hover highlighting; clickable event annotations; map hover; heatmap cell click;
+        bubble hover; country fact cards (double-click); cumulative counter; per-chart SVG export;
+        full-dashboard PNG export.</p>
 
       <h3>Data Sources</h3>
-      <p>CO<sub>2</sub> emissions: World Bank (EN.ATM.CO2E.KT).
-        Population: World Bank (SP.POP.TOTL).
-        GDP: World Bank (NY.GDP.MKTP.CD).
-        World map: Natural Earth via
+      <p>CO<sub>2</sub> emissions: World Bank (EN.ATM.CO2E.KT). Population: World Bank (SP.POP.TOTL).
+        GDP: World Bank (NY.GDP.MKTP.CD). World map: Natural Earth via
         <a href="https://cdn.jsdelivr.net/npm/world-atlas@2/" target="_blank">world-atlas@2</a>.
         Forecast: linear extrapolation from 2020–2023 trend.</p>
 
